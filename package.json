@@ -1,0 +1,49 @@
+{
+  "name": "customclaw-mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for the CustomClaw registry — lets MCP-capable LLM hosts (Claude Desktop, Claude Code, Cursor) discover and install CustomClaw developer utilities as native tools.",
+  "main": "index.js",
+  "bin": {
+    "customclaw-mcp": "index.js"
+  },
+  "files": [
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "customclaw",
+    "claude",
+    "claude-desktop",
+    "cursor",
+    "llm",
+    "tools",
+    "registry",
+    "developer-tools"
+  ],
+  "author": "CustomClaw <onlythebestswfl@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onlythebestswfl-ops/customclaw-mcp"
+  },
+  "homepage": "https://customclaw.company",
+  "bugs": {
+    "url": "https://github.com/onlythebestswfl-ops/customclaw-mcp/issues",
+    "email": "onlythebestswfl@gmail.com"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
