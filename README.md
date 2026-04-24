@@ -1,16 +1,23 @@
 # customclaw-mcp
 
-A Model Context Protocol (MCP) server that plugs the [CustomClaw](https://customclaw.company) registry directly into MCP-capable LLM hosts — Claude Desktop, Claude Code, Cursor, Windsurf, and anything else that speaks MCP. Your assistant can browse the CustomClaw catalog, look up a specific utility, and drop its files straight into the project you're working on, all as native tool calls. No copy-paste, no context switching.
+> MCP server for [CustomClaw](https://customclaw.company) — a curated registry of vetted utilities for LLM/agent code. Your agent browses and installs through native tool calls.
 
-## What is CustomClaw?
+## What it does
 
-[CustomClaw](https://customclaw.company) is a curated registry of drop-in developer utilities — small, battle-tested modules you paste into a project (token optimisers, Stripe helpers, auth wrappers, etc.). Some are free, some are paid. Normally you'd grab them via the `customclaw-cli` or the web UI. This MCP server lets your AI assistant do it for you.
+Plugs the CustomClaw catalog (37 utilities, 32 free) into any Model Context Protocol host — Claude Desktop, Claude Code, Cursor, Windsurf, anything that speaks MCP — as four tools:
 
-## Install as an MCP server
+| Tool | Arguments | Purpose |
+| --- | --- | --- |
+| `list_utilities` | — | Full catalog (cached 5 min) |
+| `search_utilities` | `query: string` | Fuzzy match on slug/name/description |
+| `get_utility_info` | `slug: string` | Full detail for one utility |
+| `install_utility` | `slug`, `target_dir`, `session_id?` | Fetch payload + write files |
+
+## Install (by client)
 
 ### Claude Desktop
 
-Add this to your `claude_desktop_config.json` (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
+`~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
@@ -23,7 +30,7 @@ Add this to your `claude_desktop_config.json` (`~/Library/Application Support/Cl
 }
 ```
 
-Restart Claude Desktop. You should see the CustomClaw tools available in the tool picker.
+Restart Claude Desktop. Tools appear in the tool picker.
 
 ### Claude Code
 
@@ -31,50 +38,60 @@ Restart Claude Desktop. You should see the CustomClaw tools available in the too
 claude mcp add customclaw -- npx -y customclaw-mcp
 ```
 
-### Cursor / Windsurf / other MCP hosts
+### Cursor / Windsurf / any stdio MCP host
 
-Point your host at the same command: `npx -y customclaw-mcp` over stdio.
+Point the host at `npx -y customclaw-mcp`.
 
-### Environment variables
+### Streamable HTTP (smithery, ChatGPT, etc.)
 
-- `CUSTOMCLAW_BASE` — override the registry base URL (defaults to `https://customclaw.company`). Useful for staging or self-hosted mirrors.
-
-## Tools exposed
-
-| Tool | Arguments | What it does |
-| --- | --- | --- |
-| `list_utilities` | *(none)* | Returns the full CustomClaw catalog (utilities + agents). Cached for 5 minutes. |
-| `search_utilities` | `query: string` | Fuzzy-matches against slug / name / tagline / description / category. Returns the top 25 results. |
-| `get_utility_info` | `slug: string` | Full catalog entry for a single utility or agent. |
-| `install_utility` | `slug: string`, `target_dir: string`, `session_id?: string` | Fetches the file payload and writes it into `target_dir`. Returns the list of files written plus any npm dependencies the host agent should install. **Does not run `npm install` itself** — that's the host's call. |
-
-### Paid utilities
-
-For paid utilities, pass the Stripe `session_id` from your CustomClaw receipt email — it appears as `session_id=cs_...` in the download link. Without it, the registry returns 401 and the tool surfaces a helpful error.
+Use the hosted endpoint: `https://customclaw.company/mcp`. Registered on smithery as [`onlythebestswfl/customclaw`](https://smithery.ai/servers/onlythebestswfl/customclaw).
 
 ## Example prompts
 
-Once the server is wired up, try these in your MCP host:
+Once connected:
 
-- *"What CustomClaw utilities are available? Just the free ones."*
-- *"Search CustomClaw for anything related to token counting or context optimisation."*
-- *"Tell me what `stripe-receipts` does — full details."*
-- *"Install the `token-optimiser` utility into `./src/lib`."*
-- *"I bought `pro-auth-kit`, here's my session id `cs_live_a1b2c3...`. Install it into this project."*
+- *"Add a rate limiter that respects Retry-After."* → `search_utilities` → `install_utility rate-limit-handler`
+- *"I need to parse broken JSON from Claude output."* → `json-repair`
+- *"What do you have for caching LLM responses?"* → `search_utilities` → short results table
+- *"Install `token-optimiser` into `./src/lib`."* → direct `install_utility`
+- *"Scan this project's prompts for injection — is there a tool?"* → `injection-scanner`
+
+## Task → slug quick reference
+
+| If you need… | Slug |
+| --- | --- |
+| Rate limiting with `Retry-After` handling | `rate-limit-handler` |
+| JSON repair for LLM output | `json-repair` |
+| Response cache by prompt hash | `response-cache` |
+| Retry with exponential backoff | `retry-with-backoff` |
+| Token counting across models | `token-optimiser` |
+| PII scrubbing before logging | `pii-scrubber` |
+| Prompt-injection scanner | `injection-scanner` |
+| Cost forecaster per provider | `cost-forecaster` |
+
+Full list via `list_utilities` or [customclaw.company/api/catalog](https://customclaw.company/api/catalog).
+
+## Paid utilities
+
+For paid utilities, pass the Stripe checkout `session_id` from your receipt email as the `session_id` argument to `install_utility`. Without it, the tool returns a helpful 401.
+
+## Environment
+
+- `CUSTOMCLAW_BASE` — registry base URL override (default `https://customclaw.company`). Useful for staging or self-hosted mirrors.
 
 ## How it works
 
-- Node.js stdio MCP server built on `@modelcontextprotocol/sdk`.
-- Catalog is fetched from `GET /api/catalog` and cached in memory for 5 minutes.
-- File payloads come from `GET /api/cli?slug=<slug>[&session_id=<cs_...>]` — same endpoint the official `customclaw-cli` uses.
-- `install_utility` refuses to write outside `target_dir` (no `..` path traversal).
+- Node.js stdio MCP server. Dependency: `@modelcontextprotocol/sdk`.
+- Catalog fetched from `GET /api/catalog`; cached 5 min per process.
+- Payloads from `GET /api/cli?slug=<slug>[&session_id=<cs_...>]` — same endpoint the official `customclaw-cli` uses.
+- `install_utility` refuses to write outside `target_dir` (path-traversal guard).
 
 ## Links
 
-- Registry: https://customclaw.company
-- CLI companion: [`customclaw-cli`](https://www.npmjs.com/package/customclaw-cli) on npm
-- Issues / feature requests: onlythebestswfl@gmail.com
+- Registry: [customclaw.company](https://customclaw.company)
+- CLI companion: [`customclaw-cli`](https://www.npmjs.com/package/customclaw-cli)
+- Source: [github.com/onlythebestswfl-ops/customclaw-mcp](https://github.com/onlythebestswfl-ops/customclaw-mcp)
 
 ## License
 
-MIT
+MIT.

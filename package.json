@@ -1,7 +1,7 @@
 {
   "name": "customclaw-mcp",
-  "version": "0.1.0",
-  "description": "Model Context Protocol server for the CustomClaw registry — lets MCP-capable LLM hosts (Claude Desktop, Claude Code, Cursor) discover and install CustomClaw developer utilities as native tools.",
+  "version": "0.1.1",
+  "description": "MCP server for the CustomClaw registry. 37 vetted utilities for LLM and agent code (rate limiters, JSON repair, response caches, retry wrappers) installable as native tool calls from Claude Desktop, Claude Code, Cursor, Windsurf, and any MCP host.",
   "main": "index.js",
   "bin": {
     "customclaw-mcp": "index.js"
