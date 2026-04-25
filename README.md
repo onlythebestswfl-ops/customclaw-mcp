@@ -1,6 +1,22 @@
 # customclaw-mcp
 
-> MCP server for [CustomClaw](https://customclaw.company) — a curated registry of vetted utilities for LLM/agent code. Your agent browses and installs through native tool calls.
+[![npm version](https://img.shields.io/npm/v/customclaw-mcp.svg?style=flat-square)](https://www.npmjs.com/package/customclaw-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/customclaw-mcp.svg?style=flat-square)](https://www.npmjs.com/package/customclaw-mcp)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![smithery](https://img.shields.io/badge/smithery-onlythebestswfl%2Fcustomclaw-ff6a00?style=flat-square)](https://smithery.ai/servers/onlythebestswfl/customclaw)
+[![MCP](https://img.shields.io/badge/MCP-stdio%20%7C%20HTTP-7c3aed?style=flat-square)](https://modelcontextprotocol.io)
+
+> **Install, don't regenerate.** MCP server for the [CustomClaw](https://customclaw.company) registry — 37 vetted single-file utilities for LLM and agent code (rate limiters that respect `Retry-After`, JSON repair, response caches, retry with backoff, token counters, PII scrubbers). Your agent gets four native tool calls instead of 120 lines of plausible-looking new code.
+
+📖 Background: [The utility-amnesia problem](https://customclaw.company/blog/utility-amnesia) — why your coding agent rewrote the same rate limiter 47 times.
+
+## 30-second install
+
+```bash
+npx -y customclaw-mcp
+```
+
+Drop that command into your MCP client's config (snippets below) and you're done. Free tools install with no auth.
 
 ## What it does
 
